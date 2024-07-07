@@ -7,6 +7,7 @@ import (
 	"product_service/config"
 	"strconv"
 
+	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -52,4 +53,20 @@ func Setup(cfg *config.DatabaseConfig) {
 	}
 
 	log.Info().Msg("[SQL] connection was successfully opened to database")
+}
+
+func EnsureMigrations(migrations []*gormigrate.Migration) {
+	m := gormigrate.New(DB, &gormigrate.Options{
+		TableName:                 "gorm_migrations",
+		IDColumnName:              "id",
+		IDColumnSize:              512,
+		UseTransaction:            false,
+		ValidateUnknownMigrations: false,
+	}, migrations)
+
+	if err := m.Migrate(); err != nil {
+		log.Fatal().Msgf("[SQL] could not migrate: %v", err)
+	}
+
+	log.Info().Msg("[SQL] migration did run successfully")
 }

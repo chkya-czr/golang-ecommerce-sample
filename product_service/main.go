@@ -20,7 +20,7 @@ func main() {
 	log.Info().Msgf("[APP] current env: \t%s", cfg.App.Env)
 
 	database.Setup(&cfg.Database)
-	// database.EnsureMigrations(database.Migrations)
+	database.EnsureMigrations(database.Migrations)
 
 	api.ServePublicServer(cfg.Server)
 	api.ServeAPIDocs(cfg.Server)
