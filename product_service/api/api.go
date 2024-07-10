@@ -16,6 +16,8 @@ func ServePublicServer(cfg config.ServerConfig) {
 	r := chi.NewRouter()
 
 	r.Use(
+		middleware.RequestID,
+		middleware.RealIP,
 		middleware.Logger,
 		middleware.Recoverer,
 		middleware.Heartbeat("/health"),
