@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Api
 	Cors
+	Database
 }
 
 func New() *Config {

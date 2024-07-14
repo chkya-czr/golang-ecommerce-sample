@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"log/slog"
@@ -9,7 +10,8 @@ import (
 	"os"
 	"os/signal"
 	"product_service/config"
-	validate "product_service/external"
+	"product_service/external/database"
+	"product_service/external/validate"
 	"product_service/internal/middleware"
 	"product_service/logger"
 	"syscall"
@@ -19,11 +21,15 @@ import (
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/cors"
+	"gorm.io/gorm"
 )
 
 type Server struct {
 	Version string
 	cfg     *config.Config
+
+	db   *sql.DB
+	gorm *gorm.DB
 
 	validator *validator.Validate
 	cors      *cors.Cors
@@ -72,9 +78,29 @@ func (s *Server) newValidator() {
 	s.validator = validate.New()
 }
 
+func (s *Server) NewDatabase() {
+	if s.cfg.Database.Driver == "" {
+		log.Fatal("please fill in database credentials in .env file or set in environment variable")
+	}
+
+	s.gorm = database.NewGorm(s.cfg.Database)
+
+	db, err := s.gorm.DB()
+
+	if err != nil {
+		log.Fatal("error while connecting to DB")
+	}
+
+	s.db = db
+	s.db.SetMaxOpenConns(s.cfg.Database.MaxConnectionPool)
+	s.db.SetMaxIdleConns(s.cfg.Database.MaxIdleConnections)
+	s.db.SetConnMaxLifetime(s.cfg.Database.ConnectionsMaxLifeTime)
+}
+
 func (s *Server) Init() {
 	s.initLog()
 	s.setCors()
+	s.NewDatabase()
 	s.newValidator()
 	s.newRouter()
 	s.setGlobalMiddleware()
