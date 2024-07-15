@@ -1,6 +1,10 @@
 package config
 
-import "time"
+import (
+	"time"
+
+	"github.com/kelseyhightower/envconfig"
+)
 
 type Database struct {
 	Driver                 string        `required:"true"`
@@ -14,4 +18,11 @@ type Database struct {
 	MaxConnectionPool      int           `split_words:"true" default:"4"`
 	MaxIdleConnections     int           `split_words:"true" default:"4"`
 	ConnectionsMaxLifeTime time.Duration `split_words:"true" default:"300s"`
+}
+
+func DataStore() Database {
+	var db Database
+	envconfig.MustProcess("DB", &db)
+
+	return db
 }
