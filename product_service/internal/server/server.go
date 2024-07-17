@@ -104,6 +104,7 @@ func (s *Server) Init() {
 	s.newValidator()
 	s.newRouter()
 	s.setGlobalMiddleware()
+	s.InitDomains()
 }
 
 func (s *Server) newRouter() {
